@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <flow name="mulemessageexchangepatternFlow">
+        <vm:inbound-endpoint path="in1" exchange-pattern="one-way" />
+        <custom-transformer class="com.classes.mule.CustomTransformer">
+            <spring:property name="append" value="flow1(append_to_in1)" />
+        </custom-transformer>
+    </flow>
+    
+    	<flow name="flow2">
+		<vm:inbound-endpoint path="in2" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow2(append_to_in2)" />
+		</custom-transformer>
+		<vm:outbound-endpoint path="out" exchange-pattern="one-way" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow2(append_to_out_reponse)" />
+		</custom-transformer>		
+	</flow>
+	
+	<flow name="flow3">
+		<vm:inbound-endpoint path="out" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow3(append_to_out)" />
+		</custom-transformer>
+	</flow>	
+	
+	<flow name="flow4">
+		<vm:inbound-endpoint path="in3" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow4(append_to_in3)" />
+		</custom-transformer>
+		<response>
+			<custom-transformer class="com.classes.mule.CustomTransformer">
+				<spring:property name="append" value="flow4(append_to_in3_reponse)" />
+			</custom-transformer>
+		</response>
+		<vm:outbound-endpoint path="out_no_res" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow4(append_to_out_reponse)" />
+		</custom-transformer>		
+	</flow>	
+	
+	<flow name="flow5">
+		<vm:inbound-endpoint path="out_no_res" exchange-pattern="one-way" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow3(append_to_out_no_res)" />
+		</custom-transformer>
+	</flow>	
+
+	<flow name="flow6">
+		<vm:inbound-endpoint path="in4" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow6(append_to_in4)" />
+		</custom-transformer>
+		<response>
+			<custom-transformer class="com.classes.mule.CustomTransformer">
+				<spring:property name="append" value="flow6(append_to_in4_reponse)" />
+			</custom-transformer>
+		</response>
+		<vm:outbound-endpoint path="out_res" exchange-pattern="one-way" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow6(append_to_out_reponse)" />
+		</custom-transformer>		
+	</flow>	
+	
+	<flow name="flow7">
+		<vm:inbound-endpoint path="out_res" exchange-pattern="request-response" />
+		<custom-transformer class="com.classes.mule.CustomTransformer">
+			<spring:property name="append" value="flow7(append_to_out_res)" />
+		</custom-transformer>
+	</flow>	
+</mule>

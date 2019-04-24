@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+
+<file:connector name="File" autoDelete="true" streaming="true" validateConnections="true" doc:name="File"/>
+<file:connector name="File1" autoDelete="true" streaming="true" validateConnections="true" doc:name="File"/>
+<http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+<vm:connector name="VM" validateConnections="true" doc:name="VM"/>
+<flow name="main-http-flow">
+<http:listener config-ref="HTTP_Listener_Configuration" path="/scope" doc:name="HTTP"/>
+<set-payload value="main flow msg" doc:name="Set Payload"/>
+<set-variable variableName="fvar" value="foo" doc:name="flow fvar"/>
+<set-session-variable variableName="svar" value="sss" doc:name="Session svar"/>
+        <set-property propertyName="testprop" value="#['testprop']" doc:name="Property"/>
+<enricher target="junk" doc:name="Message Enricher">
+<scripting:component doc:name="AppRegistry-rvar">
+<scripting:script engine="Groovy"><![CDATA[muleContext.getRegistry().registerObject("rvar", new String("Roar!"))]]></scripting:script>
+</scripting:component>
+</enricher>
+<logger message="**** main-http-flow, fvar=#[fvar], svar=#[svar], rvar=#[app.registry.get('rvar')], payload=#[payload]" level="INFO" doc:name="main-http-logger"/>
+<flow-ref name="regular-flow" doc:name="regular-flow"/>
+<vm:outbound-endpoint exchange-pattern="one-way" path="/testq" connector-ref="VM" doc:name="VM"/>
+</flow>
+<flow name="regular-flow">
+<logger message="**** regular flow, everything is safe, fvar=#[fvar], svar=#[svar], rvar=#[app.registry.get('rvar')], payload=#[payload]" level="INFO" doc:name="regularLogger"/>
+</flow>
+<flow name="vm-flow">
+<vm:inbound-endpoint exchange-pattern="one-way" path="/testq" connector-ref="VM" doc:name="VM"/>
+<logger message="**** vm flow, flowVar not safe, fvar=#[?fvar], svar=#[svar], rvar=#[app.registry.get('rvar')], payload=#[payload]" level="INFO" doc:name="vm_Logger"/>
+</flow>
+<flow name="file-flow">
+<file:inbound-endpoint path="c:\dev\in" connector-ref="File" responseTimeout="10000" doc:name="File"/>
+<logger message="**** file flow, only registry is good, fvar=#[?fvar], svar=#[?svar], rvar=#[app.registry.get('rvar')]" level="INFO" doc:name="file_Logger"/>
+<file:outbound-endpoint path="c:/dev/out" connector-ref="File1" responseTimeout="10000" doc:name="File"/>
+</flow>
+
+</mule>
